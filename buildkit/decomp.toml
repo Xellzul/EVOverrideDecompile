@@ -1,0 +1,116 @@
+# The build's configuration (buildkit/tools/link.py, link68.py, cwppc.py, cw68k.py). Paths are relative to the
+# repository root (the build root, buildlib/work.py).
+
+[target]
+# the pins: the three parts exactly as EV_Override_1.0.2_f.sit holds them (buildkit/unpack/sit5.py)
+data_fork = "game/EV Override 1.0.2 (download)/EV Override"
+data_fork_sha256 = "26467b0ebbc7d7117be77337db31f64211efd5ac8ca952226675b506af67c522"
+resource_fork = "game/EV Override 1.0.2 (download)/.rsrc/EV Override"
+resource_fork_sha256 = "71a67e756a1725c50a0e6ccd02d226facc3f89c81965627f78ec0b2880d8cf5c"
+finder_info = "game/EV Override 1.0.2 (download)/.finf/EV Override"
+finder_info_sha256 = "44f3db0b056762104373435e727e0b940938785d4205fcf83aab27d505390641"
+
+[ppc]
+code_base = 0x10000000
+
+[source]
+roots = ["sources"]
+
+[build]
+# The CW Pro 3 CD's own MWCPPC 2.1 Build 0014FR (1998-04), the Mac-hosted plugin.
+compiler = "Pro30mac"
+default_flags = "-opt off,peephole -enum min -sym on -Cpp_exceptions off"
+# Access paths, searched in order after the source's own directory: project headers,
+# then CW Pro 5's Universal Interfaces 3.2 and the CW Pro 3 CD's MSL C 2.4 (the compiler's own release;
+# the 68k build takes the same MSL, buildkit/tools/cw68k.py MSL68).
+includes = [
+  "sources/include",
+  "toolchain/cwpro5-win/MacOS Support/Universal/Interfaces/CIncludes",
+  "toolchain/cwpro3-cd/win/Lang_CCPP/Metrowerks_Standard_Library/MSL_C/MSL_Common/Public_Includes",
+  "toolchain/cwpro3-cd/win/Lang_CCPP/Metrowerks_Standard_Library/MSL_C/MSL_Mac/Public_Includes",
+]
+
+[build.compilers]
+# the parts' compilers (a file's `// COMPILER:`).
+# The CW Pro 3 CD's plugins as the Mac CW Pro 3 ran them (CD data+resource forks), emulated: buildkit/tools/machost
+Pro30mac = "emu:toolchain/mwcppc/compilers/Pro30mac"
+# CW Pro 5's MWCPPC.exe 2.3 (SATAddOns.c)
+Pro5 = "toolchain/mwcppc/compilers/Pro5"
+# the 1995-2000 MPW tools, buildkit/tools/mpwhost: MWCPPC 1.3 (CW Gold 7), 1.8 (CWPro1), 2.0 (CWPro2); the library
+# part: MonitorTool CW7, RegTool/MoreFilesExtras/Search CWPro1, SoundMixer CWPro2
+CW7 = "mpw:toolchain/oldcw/cw7gold"
+CWPro1 = "mpw:toolchain/oldcw/cwpro1"
+CWPro2 = "mpw:toolchain/oldcw/cwpro2"
+
+[link]
+# buildkit/tools/link.py: the PPC data fork. MWLinkPPC 2.3 (the CW Pro 5 disc's) stands in for CW Pro 3's 2.1.1 linker.
+# Stub libraries are CW Pro 3's own (byte-identical to Pro 4's).
+linker = "Pro5"
+stub_dir = "toolchain/cwpro3-cd/win/Lang_Pas/MacOS_Support/Libraries/MacOS_Common"
+stub_libs = ["InterfaceLib", "MathLib", "SpeechLib", "SoundLib", "QuickTimeLib"]
+weak_libs = ["SpeechLib", "SoundLib", "QuickTimeLib"]
+# SAT 2.6.0b (sat260b-libs.hqx) and the SAT 2.4.0 Add-ons lib.
+sat_lib = "toolchain/sat/SAT(PPC).lib"
+sat_addons = "toolchain/sat/SATAdd-ons(PPC).lib"
+stacksize = 150
+fragname = "EV Override.fat"
+# Written at offset 16 of the PEF after the link.
+stamp = 0xB5606D31
+# The runtime band: CW Pro 3's prebuilt MSL C.PPC.Lib and MSL RuntimePPC.Lib, linked in this order;
+# every runtime function of the target is byte-identical in them. The copies from the Mac Tools CD: the Mac
+# MSL C.PPC.Lib has critical_regions.mac.c after string.c, as the target does; the Windows CD's has it after
+# abort_exit.c.
+runtime_libs = [
+  "toolchain/cwpro3-cd/mac/Metrowerks_Standard_Library/MSL_C/Bin/MSL C.PPC.Lib",
+  "toolchain/cwpro3-cd/mac/MacOS_Support/Libraries/Runtime/Runtime_PPC/MSL RuntimePPC.Lib",
+]
+
+[link68]
+# buildkit/tools/link68.py: the 68k CODE/DATA, linked by the CW Pro 3 CD's own IDE 68K linker plugin
+# (MacOS_68K_Linker 2.1, under buildkit/tools/machost/mwlink68k3.py; the project is ide_segments below).
+# MacOS/MSL/runtime/SIOUX/MathLib: the Mac CW Pro 3 Tools CD, under "Metrowerks CodeWarrior:" + the folder path
+# with spaces as underscores. The Mac SIOUX lib is the target's framed build (the Windows CD's is frameless); the Mac
+# "MSL C.68K (2i).Lib" is the Windows CD's mislabelled "(4i_8d)".
+lib_macos = "toolchain/cwpro3-cd/mac/MacOS_Support/Libraries/MacOS_68K/MacOS.lib"
+lib_msl = "toolchain/cwpro3-cd/mac/Metrowerks_Standard_Library/MSL_C/Bin/MSL C.68K (2i).Lib"
+lib_runtime = "toolchain/cwpro3-cd/mac/MacOS_Support/Libraries/Runtime/Runtime_68K/MSL Runtime68K.Lib"
+lib_startup = "toolchain/cwpro3-cd/mac/MacOS_Support/Libraries/Runtime/Runtime_68K/MSL CustomAppl68KStartup.Lib"
+lib_sioux = "toolchain/cwpro3-cd/mac/Metrowerks_Standard_Library/MSL_C/Bin/MSL SIOUX.68K.Lib"
+lib_math = "toolchain/cwpro3-cd/mac/MacOS_Support/Libraries/MacOS_68K/MathLib68K/MathLib68K_(Model_Near)/MathLib68K (2i).Lib"
+# SAT 2.6.0b sat260b-libs.hqx and SAT 2.4.0 SAT-240-libdoc.hqx (as the PPC libs above)
+lib_sat = "toolchain/sat/SAT(68k).lib"
+lib_satadd = "toolchain/sat/SATAdd-ons(68k).lib"
+# The Mac Libraries segment: each statically linked library is its own part with its own compiler, as on PPC.
+# parts {stem = {compiler, flags}}: "mpw68:<dir>" = that CW CD's MPW MWC68K (buildkit/tools/mpwhost), flags = the
+# tool's defaults plus evidenced deviations; otherwise Pro30mac with the evo preset plus `flags`.
+# MonitorTool: CW7 Gold (keeps `tst.w d0` after a trap result, frameless, MacsBug names).
+# RegTool, MoreFilesExtras, Search: CW Pro 1 (pointer params stay in the frame; near code and 68000 are that
+# tool's defaults; -Cpp_exceptions off: no exception tables in far data). SoundMixer: CW Pro 2 on both CPUs (drops
+# the dead `if (v < 0)` clamps; Pro30mac keeps a `moveq #0`), frameless. MacFiles: the game build.
+parts = { MonitorTool = { compiler = "mpw68:toolchain/oldcw/cw7gold", flags = ["-noa6", "-intsize", "2", "-mc68020", "-model", "codesmart", "-opt", "size"] }, RegTool = { compiler = "mpw68:toolchain/oldcw/cwpro1", flags = ["-mbg", "off", "-Cpp_exceptions", "off", "-intsize", "2", "-opt", "size"] }, MoreFilesExtras = { compiler = "mpw68:toolchain/oldcw/cwpro1", flags = ["-mbg", "off", "-Cpp_exceptions", "off", "-intsize", "2", "-opt", "size"] }, Search = { compiler = "mpw68:toolchain/oldcw/cwpro1", flags = ["-mbg", "off", "-Cpp_exceptions", "off", "-intsize", "2", "-opt", "size"] }, SoundMixer = { compiler = "mpw68:toolchain/oldcw/cwpro2", flags = ["-mbg", "off", "-noa6", "-Cpp_exceptions", "off", "-intsize", "2", "-mc68020", "-model", "codesmart", "-opt", "all"] } }
+# Pro30mac stems of the segment: 68K CodeGen byte 16 = 0 (near data) and, as on PPC, Universal Interfaces 2.1.4
+# (SystemSevenOrLater 0: SysEnvirons/Gestalt glue).
+near_data = ["MacFiles"]
+near_panel = { "16" = 0 }
+near_includes = "toolchain/oldcw/cwpro1/CIncludes"
+# The project as the IDE had it: groups in order = segment ids 1..12. The IDE linker loads every compiled source
+# first and the library files after them, so the libraries sit in Gameplay and their data still follows Files'.
+# Group 10 holds a library nothing is pulled from (a 12-byte segment that is not written: slot $C); group 11 holds
+# nothing linkable (slot left at the linker's preset 1). ide_libraries: objects that are library files of the
+# project, not sources compiled in it (the Mac Libraries part's own builds, SAT's add-on, the dummy).
+ide_segments = [
+  ["Gameplay", ["AI", "Escape Velocity", "Globals", "Handlers", "Player", "Status", "TrigTable", "Util", "Missions",
+                "lib:msl", "lib:runtime", "lib:macos", "lib:startup", "lib:sioux", "lib:sat", "lib:satadd", "SATAddOns68k"]],
+  ["Bar", ["Bar"]],
+  ["Comm", ["Communications"]],
+  ["Main Screen", ["Main Screen"]],
+  ["Interface", ["Interface", "Buttons"]],
+  ["Map", ["Map"]],
+  ["Intro", ["Intro"]],
+  ["Init", ["Setup"]],
+  ["Files", ["Files"]],
+  ["Seg10", ["dummy10"]],
+  ["Seg11", []],
+  ["Mac Libraries", ["MonitorTool", "SoundMixer", "MacFiles", "RegTool", "MoreFilesExtras", "Search", "lib:math"]],
+]
+ide_libraries = ["SATAddOns68k", "dummy10", "MonitorTool", "SoundMixer", "MacFiles", "RegTool", "MoreFilesExtras", "Search"]
